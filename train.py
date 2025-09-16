@@ -8,7 +8,7 @@ from transformers import BertModel
 from dataset import create_dataloaders
 from sklearn.metrics import f1_score
 from utils.logger import get_logger
-from figure import draw_loss_curve, draw_accuracy_curve, draw_f1_curve
+from utils.figure import draw_loss_curve, draw_accuracy_curve, draw_f1_curve
 
 logger = get_logger(name="train")
 
@@ -25,7 +25,7 @@ class BertForMultiClassification(nn.Module):
         # 分类头：全连接层（输入维度为BERT的hidden_size，输出维度为类别数）
         self.classifier = nn.Linear(self.bert.config.hidden_size, num_classes)
         # 初始化分类头参数
-        nn.init.xavier_normal_(self.classifier.weight)
+        # nn.init.xavier_normal_(self.classifier.weight)
 
     def forward(self, input_ids, attention_mask, token_type_ids):
         # BERT输出：last_hidden_state是所有token的隐藏状态，pooler_output是[CLS]的池化结果
@@ -74,7 +74,7 @@ def train_model(model, train_loader, val_loader, device,
     steps, train_losses, train_accs, train_f1s = [], [], [], []
     val_steps, val_accs, val_f1s = [], [], []
     for epoch in range(epochs):
-        for i, (input_ids, attention_mask, token_type_ids, labels) in enumerate(train_loader):
+        for input_ids, attention_mask, token_type_ids, labels in train_loader:
             start_time = time.time()
             logits = model(input_ids=input_ids,
                            attention_mask=attention_mask,
@@ -120,15 +120,15 @@ def train_model(model, train_loader, val_loader, device,
         torch.save(ckpt, ckpt_path)
         logger.info(f'保存检查点到 {ckpt_path}')
 
-    # 绘制曲线
-    try:
-        os.makedirs(figures_dir, exist_ok=True)
-        draw_loss_curve(steps, train_losses, out_path=os.path.join(figures_dir, 'loss.png'))
-        draw_accuracy_curve(steps, train_accs, val_steps, val_accs, out_path=os.path.join(figures_dir, 'accuracy.png'))
-        draw_f1_curve(steps, train_f1s, val_steps, val_f1s, out_path=os.path.join(figures_dir, 'f1.png'))
-        logger.info('训练曲线已保存到 figures/ 目录')
-    except Exception as e:
-        logger.error(f'绘图失败: {e}')
+        # 绘制曲线
+        try:
+            os.makedirs(figures_dir, exist_ok=True)
+            draw_loss_curve(steps, train_losses, out_path=os.path.join(figures_dir, 'loss.png'))
+            draw_accuracy_curve(steps, train_accs, val_steps, val_accs, out_path=os.path.join(figures_dir, 'accuracy.png'))
+            draw_f1_curve(steps, train_f1s, val_steps, val_f1s, out_path=os.path.join(figures_dir, 'f1.png'))
+            logger.info('训练曲线已保存到 figures/ 目录')
+        except Exception as e:
+            logger.error(f'绘图失败: {e}')
 
 
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     figures_dir = cfg.get('viz', 'figures_dir', fallback='figures')
 
     # 创建数据
-    train_loader, val_loader = create_dataloaders(batch_size=batch_size,
+    train_loader, val_loader, _ = create_dataloaders(batch_size=batch_size,
                                                   max_length=max_length,
                                                   dataset_name=dataset_name,
                                                   device=device)

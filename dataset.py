@@ -43,6 +43,7 @@ def create_dataloaders(batch_size: int = 64,
 
     train_dataset = TextSentimentDataset('train', dataset_name)
     val_dataset = TextSentimentDataset('validation', dataset_name)
+    test_dataset = TextSentimentDataset('test', dataset_name)
 
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
@@ -59,6 +60,16 @@ def create_dataloaders(batch_size: int = 64,
         drop_last=False,
     )
 
-    return train_loader, val_loader
+    test_loader = torch.utils.data.DataLoader(
+        dataset=test_dataset,
+        batch_size=batch_size,
+        collate_fn=collate_fn,
+        shuffle=False,
+        drop_last=False,
+    )
+    print(f'原始数据集数量 - 训练集：{len(train_dataset)}, 验证集：{len(val_dataset)}, 测试集：{len(test_dataset)}')
+    print(f'DataLoader批次数量 - 训练集：{len(train_loader)}, 验证集：{len(val_loader)}, 测试集：{len(test_loader)}')
+
+    return train_loader, val_loader, test_loader
 
 
